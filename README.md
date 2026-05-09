@@ -129,7 +129,6 @@ Invalid short code: [invalid]
     - Future planning to expose some metrics for something like **Prometheus**
 - Potentially introduced an in-memory cache (like [Caffeine](https://github.com/ben-manes/caffeine)) in addition to **valkey**
     - Probably overkill
-- Updated to JDK 26
 
 ----
 
