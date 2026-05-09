@@ -20,8 +20,7 @@ public class Main {
 		context.addServletMappingDecoded("/*", "urlShortener");
 
 		tomcat.start();
-		System.out.println("Server started on http://localhost:" + port);
+		System.out.println("Server started on http://localhost:" + port);  // TODO: Logger
 		tomcat.getServer().await();
 	}
-
 }

@@ -4,10 +4,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,7 +32,7 @@ public class UrlShortenerServlet extends HttpServlet {
 
         // TODO: Sanitize input (apache commons for url validation)
 
-        final String shortCode = generateShortCode(inputUrl);
+        final String shortCode = ShortCodeGenerator.generate(inputUrl);
         SHORT_TO_URL.putIfAbsent(shortCode, inputUrl);
         final String shortUrl = URL_TO_SHORT.computeIfAbsent(inputUrl, unused -> generateShortUrl(request, shortCode));
 
@@ -63,21 +59,5 @@ public class UrlShortenerServlet extends HttpServlet {
 
     private static String generateShortUrl(HttpServletRequest request, final String shortCode) {
         return String.format("%s://%s:%s/%s", request.getScheme(), request.getServerName(), request.getServerPort(), shortCode);
-    }
-
-    // TODO: Move to another class for testing
-    private static String generateShortCode(final String inputUrl) {
-        try {
-            final MessageDigest digest = MessageDigest.getInstance("SHA256");
-            final byte[] digestHash = digest.digest(inputUrl.getBytes(StandardCharsets.UTF_8));
-
-            // TODO: Maybe check this and look for something to do alphanumeric only? No big deal
-            return Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(digestHash)
-                .substring(0, 10);  // Extract length to const
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
