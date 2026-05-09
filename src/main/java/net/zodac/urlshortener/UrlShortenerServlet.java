@@ -1,4 +1,4 @@
-package com.example.urlshortener;
+package net.zodac.urlshortener;
 
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;

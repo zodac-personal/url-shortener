@@ -1,4 +1,4 @@
-package com.example.urlshortener;
+package net.zodac.urlshortener;
 
 import java.io.File;
 
