@@ -5,33 +5,48 @@
 The application can be launched with `docker`:
 
 ```shell
-docker compose up --build -d
+docker compose up --build -d --scale url-shortener=10
 ```
 
-If `docker` is not available, you can run using `mvn`:
-
-```shell
-mvn package
-java -jar target/url-shortener.jar
-```
-
-**NOTE:** I couldn't get the provided [mvnw](mvnw) wrapper to work on my Debian machine, but it might work on other systems:
-
-```shell
-./mvnw package
-java -jar target/url-shortener.jar
-
-# On Windows:
-mvnw.cmd package
-java -jar target/url-shortener.jar
-```
-
-This will launch the Java `url-shortener` application, and the external cache. You should see the following line in the console to confirm the
-application started successfully:
+This will launch the external cache, the load-balancer, and 10 replicas of the Java `url-shortener` backend. You should see the following line in the
+console per replica to confirm the application started successfully:
 
 ```shell
 Server started on http://localhost:8080
 ```
+
+Similarly, you can use `docker ps` to verify the status of the container:
+
+<details>
+    <summary>Docker container health</summary>
+
+```shell
+# Java backends
+docker ps -a | grep url-shortener
+# Output
+a39b484cf236   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 16 seconds (healthy)   8080/tcp          url-shortener-url-shortener-6
+8f2422a74b97   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 16 seconds (healthy)   8080/tcp          url-shortener-url-shortener-1
+61da27d913dc   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 15 seconds (healthy)   8080/tcp          url-shortener-url-shortener-7
+6c56ad08d034   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 15 seconds (healthy)   8080/tcp          url-shortener-url-shortener-3
+ba235545679b   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 15 seconds (healthy)   8080/tcp          url-shortener-url-shortener-8
+b23e72efedb0   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 14 seconds (healthy)   8080/tcp          url-shortener-url-shortener-2
+44abcef2aad9   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 14 seconds (healthy)   8080/tcp          url-shortener-url-shortener-5
+bbf06f1c4cb2   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 14 seconds (healthy)   8080/tcp          url-shortener-url-shortener-4
+d7326714334c   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 13 seconds (healthy)   8080/tcp          url-shortener-url-shortener-10
+94aa29d304d2   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 13 seconds (healthy)   8080/tcp          url-shortener-url-shortener-9
+
+# Cache
+docker ps -a | grep cache
+# Output
+2709800a98ba   valkey/valkey:9.0.3-alpine   "docker-entrypoint.s…"   About a minute ago   Up About a minute (healthy)   6379/tcp  cache
+
+# Load-balancer
+docker ps -a | grep load-balancer
+# Output
+74b30f76e741   haproxy:3.3.9-alpine         "docker-entrypoint.s…"   About a minute ago   Up About a minute (healthy)   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp  load-balancer
+```
+
+</details>
 
 ## Automated Testing
 
@@ -97,6 +112,49 @@ curl -X GET http://localhost:8080/invalid
 Invalid short code: [invalid]
 ```
 
+### Caching
+
+You can confirm the cache is working by stopping and restarting the application:
+
+```shell
+docker compose down && docker compose up --build
+```
+
+Then run a **GET** request to resolve a known short-code:
+
+```shell
+curl -X GET http://localhost:8080/2TMawShw8p -I
+```
+
+You should get a response despite no **POST** request shortening the URL, and can see the following log entry:
+
+```shell
+Found value in cache
+```
+
+### Load Balancing
+
+You can confirm the load-balancer is working by stopping and restarting the application with multiple replicas
+
+```shell
+docker compose down && docker compose up --build --scale url-shortener=10
+```
+
+Then run some **POST** requests to shorten a URL (can be the same request):
+
+```shell
+curl -X POST -d 'url=https://www.youtube.com'  http://localhost:8080
+```
+
+You should be able to see logs across the `url-shortener` instances showing the load-balancer is spreading the requests across the replicas:
+
+```shell
+url-shortener-8   | Found value in cache
+url-shortener-6   | Found value in cache
+url-shortener-2   | Found value in cache
+url-shortener-10  | Found value in cache
+```
+
 ## Assumptions
 
 - Assuming that a valid URL begins with either `https://` or `http://`, no support for other protocols
@@ -112,6 +170,8 @@ Invalid short code: [invalid]
     - Returns a full URL in the format `http://server_address:server_port/<short_code>`, rather than just the short code itself
 - The **GET** endpoint to resolve a short code:
     - Returns no HTML body, simply a redirect (HTTP 302, not 301) to the target URL
+- HAProxy load-balancer allows for a maximum of 10 replicas
+    - Using a simple `leastconn` strategy for load-balancing, instead of round-robin or hash-based assignment
 
 ## Ran Out Of Time
 
@@ -120,7 +180,6 @@ Invalid short code: [invalid]
       etc.)
     - Added a `/status` or `/health` endpoint so a `HEALTHCHECK` could be included
 - Proper API docs (**OpenAPI**/**Swagger** or **RAML**)
-- Added **HAProxy** (or a similar load balancer) so the number of `url-shortener` containers could be scaled and HAProxy could balance requests
 - Added **nginx** (or a similar reverse proxy) to handle SSL termination
 - Actual integration tests for the full E2E flow (if additional components were added)
 - Added linting (**PMD**, **SpotBugs**, **CheckStyle**, etc.)

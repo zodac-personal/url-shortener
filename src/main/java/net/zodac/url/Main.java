@@ -15,10 +15,10 @@ public class Main {
 
     /**
      * Main method to start the Tomcat instance.
-     *
-     * @param args application arguments
      */
-    public static void main(final String[] args) {
+    static void main() {
+        System.out.println("Hostname: " + EnvironmentVariableUtils.getOrDefault("HOSTNAME", "localhost"));
+
         final Tomcat tomcat = new Tomcat();
         tomcat.setPort(TOMCAT_PORT);
         tomcat.getConnector();

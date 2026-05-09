@@ -9,8 +9,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: url-shortener
-    hostname: url-shortener
     depends_on:
       cache:
         condition: service_healthy
@@ -20,8 +18,8 @@ services:
       TOMCAT_PORT: "8080"
     networks:
       - url-shortener
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     restart: unless-stopped
 
   cache:
@@ -61,6 +59,40 @@ services:
     user: "999:1000"  # valkey user
     volumes:
       - cache_data:/data
+
+  load-balancer:
+    image: haproxy:3.3.9-alpine
+    container_name: load-balancer
+    hostname: load-balancer
+    cap_drop:
+      - ALL
+    depends_on:
+      url-shortener:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "256M"
+          pids: 512
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 30s
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8404/health" ]
+      timeout: 5s
+    networks:
+      - url-shortener
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+    user: "99:99"  # haproxy user
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
 
 volumes:
   cache_data: { }
