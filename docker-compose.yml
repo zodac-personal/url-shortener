@@ -11,8 +11,55 @@ services:
       dockerfile: Dockerfile
     container_name: url-shortener
     hostname: url-shortener
+    depends_on:
+      cache:
+        condition: service_healthy
+    environment:
+      CACHE_HOSTNAME: "cache"
+      CACHE_PORT: "6379"
     networks:
       - url-shortener
     ports:
       - "8080:8080"
     restart: unless-stopped
+
+  cache:
+    image: valkey/valkey:9.0.3-alpine  # https://hub.docker.com/r/valkey/valkey
+    container_name: cache
+    hostname: cache
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+          pids: 128
+    environment:
+      VALKEY_EXTRA_FLAGS: "--save 60 1 --loglevel warning"
+    expose:
+      - "6379"
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 30s
+      test: [ "CMD", "valkey-cli", "ping" ]
+      timeout: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - url-shortener
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+    user: "999:1000"  # valkey user
+    volumes:
+      - cache_data:/data
+
+volumes:
+  cache_data: { }

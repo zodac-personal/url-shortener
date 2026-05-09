@@ -16,7 +16,7 @@
 
         <!-- Dependency versions -->
         <tomcat.version>11.0.22</tomcat.version>
-        <jedis.version>7.1.0</jedis.version>
+        <jedis.version>7.5.0</jedis.version>
 
         <!-- Test dependency versions -->
         <assertj-core.version>4.0.0-M1</assertj-core.version>

@@ -26,7 +26,8 @@ mvnw.cmd package
 java -jar target/url-shortener.jar
 ```
 
-You should see the following line in the console to confirm the application started successfully:
+This will launch the Java `url-shortener` application, and the external cache. You should see the following line in the console to confirm the
+application started successfully:
 
 ```shell
 Server started on http://localhost:8080
@@ -119,7 +120,6 @@ Invalid short code: [invalid]
       etc.)
     - Added a `/status` or `/health` endpoint so a `HEALTHCHECK` could be included
 - Proper API docs (**OpenAPI**/**Swagger** or **RAML**)
-- Added **Valkey** (or a similar cache) as a replacement for the in-memory storage
 - Added **HAProxy** (or a similar load balancer) so the number of `url-shortener` containers could be scaled and HAProxy could balance requests
 - Added **nginx** (or a similar reverse proxy) to handle SSL termination
 - Actual integration tests for the full E2E flow (if additional components were added)
