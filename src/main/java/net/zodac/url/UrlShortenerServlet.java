@@ -25,18 +25,22 @@ public class UrlShortenerServlet extends HttpServlet {
         response.sendRedirect(originalUrl);
     }
 
-    // TODO: Return 201_CREATED
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         final String inputUrl = request.getParameter("url");
 
-        // TODO: Sanitize input (apache commons for url validation)
+        if (!UrlValidator.isValid(inputUrl)) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Invalid URL: " + inputUrl);
+            return;
+        }
 
         final String shortCode = ShortCodeGenerator.generate(inputUrl);
         SHORT_TO_URL.putIfAbsent(shortCode, inputUrl);
         final String shortUrl = URL_TO_SHORT.computeIfAbsent(inputUrl, unused -> generateShortUrl(request, shortCode));
 
         response.setContentType("text/html;charset=UTF-8");
+        response.setStatus(HttpServletResponse.SC_CREATED);
         response.getWriter().write(
             """
                 <html>

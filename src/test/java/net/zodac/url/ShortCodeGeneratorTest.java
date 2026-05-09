@@ -15,7 +15,7 @@ class ShortCodeGeneratorTest {
         "http://www.google.com,JT0UJwMEHd",
         "http://www.youtube.com,lrOqK46O-e"
     })
-    void testShortCodeGenerator(final String input, final String expected) {
+    void testGenerate(final String input, final String expected) {
         final String actual = ShortCodeGenerator.generate(input);
         assertThat(actual)
             .isEqualTo(expected);
