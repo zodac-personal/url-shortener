@@ -13,7 +13,8 @@ class ShortCodeGeneratorTest {
     @ParameterizedTest
     @CsvSource({
         "http://www.google.com,JT0UJwMEHd",
-        "http://www.youtube.com,lrOqK46O-e"
+        "http://www.youtube.com,lrOqK46O-e",
+        "http://youtube.com,faZolJjBhq",
     })
     void testGenerate(final String input, final String expected) {
         final String actual = ShortCodeGenerator.generate(input);

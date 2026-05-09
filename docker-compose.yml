@@ -9,13 +9,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      cache:
-        condition: service_healthy
-    environment:
-      REDIS_HOST: "cache"
-      REDIS_PORT: 6379
+    container_name: url-shortener
+    hostname: url-shortener
     networks:
       - url-shortener
     ports:
       - "8080:8080"
+    restart: unless-stopped
