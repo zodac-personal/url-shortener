@@ -17,6 +17,7 @@ services:
     environment:
       CACHE_HOSTNAME: "cache"
       CACHE_PORT: "6379"
+      TOMCAT_PORT: "8080"
     networks:
       - url-shortener
     ports:
