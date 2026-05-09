@@ -1,3 +1,121 @@
+# Implementation
+
+## Deployment
+
+The application can be launched with `docker`:
+
+```bash
+docker compose up --build -d
+```
+
+If `docker` is not available, you can run using `mvn`:
+
+```bash
+mvn package
+java -jar target/url-shortener.jar
+```
+
+**NOTE:** I couldn't get the provided [mvnw](mvnw) wrapper to work on my Debian machine, but it might work on other systems:
+
+```shell
+
+./mvnw package
+java -jar target/url-shortener.jar
+
+# On Windows:
+mvnw.cmd package
+java -jar target/url-shortener.jar
+```
+
+## Automated Testing
+
+## Manual Testing
+
+### Shorten URL
+
+```bash
+curl -X POST -d 'url=https://www.youtube.com' http://localhost:8080
+
+# Output
+<html>
+	<body>
+		<h1>Hello from URL Shortener</h1>
+
+		<div>
+			<b>Original:</b>
+			https://www.youtube.com
+		</div>
+
+		<div>
+			<b>Shortened:</b>
+			http://localhost:8080/2TMawShw8p
+		</div>
+	</body>
+</html>
+```
+
+### Resolve URL
+
+```bash
+curl -X GET http://localhost:8080/2TMawShw8p -I
+
+# Output
+HTTP/1.1 302 
+Location: https://www.youtube.com
+Content-Type: text/html;charset=UTF-8
+Content-Length: 0
+Date: Sat, 09 May 2026 02:20:24 GMT
+```
+
+You can also load `http://localhost:8080/2TMawShw8p` in a browser, which should then redirect to [YouTube](https://youtube.com).
+
+### Error Cases
+
+```bash
+# Shorten an invalid URL
+curl -X POST -d 'url=file://www.youtube.com' http://localhost:8080
+# Output
+Invalid URL: [file://www.youtube.com]
+
+# Resolve a non-existent URL
+curl -X GET http://localhost:8080/invalid
+# Output
+Invalid short code: [invalid]
+```
+
+## Assumptions
+
+- Assuming that a valid URL begins with either `https://` or `http://`, no support for other protocols
+    - This can easily be extended in [UrlValidator](src/main/java/net/zodac/url/UrlValidator.java)
+- Short-code generation uses Base64 encoding, which may include some non-alphanumeric characters
+- All endpoints live at `/`, and there are no sub-paths for this application
+    - I would have put this under `url` if there was another resource exposed, but since we're considering scalability, I wanted this application to
+      be stateless and easy to replicate
+- The **POST** endpoint to shorten a URL
+    - Should return a full `<html>` page, rather than a `<div>` block (or some other partial element)
+    - Returns a full URL in the format `http://server_address:server_port/<short_code>`, rather than just the short code itself
+- The **GET** endpoint to resolve a short code
+    - Returns no HTML body, simply a redirect (HTTP 302) to the target URL
+
+## Ran Out Of Time
+
+- I would have done a minimal docker image with distroless/non-root and use `jlink` to reduce JDK size
+    - I would also have made the services in [docker-compose.yml](docker-compose.yml) more secure (updated the Java app similar to the cache)
+    - Added a `/status` or `/health` endpoint so a `HEALTHCHECK` could be included
+- Proper API docs (**OpenAPI**/**Swagger** or **RAML**)
+- Automated tests for the full E2E flow
+- Added **HAProxy** (or a similar load balancer) so the number of `url-shortener` containers could be scaled and HAProxy could balance requests
+- Added **nginx** (or a similar reverse proxy) to handle SSL termination
+- Added linting (**PMD**, **SpotBugs**, **CheckStyle**, etc.)
+- Used a proper logging framework
+- Added some instrumentation, maybe?
+    - Future planning to expose some metrics for something like **Prometheus**
+- Potentially introduced an in memory-cache (like [Caffeine](https://github.com/ben-manes/caffeine)) in addition to **valkey**
+    - Probably overkill
+- Updated to JDK 26
+
+----
+
 # URL Shortener — Coding Challenge
 
 *Please spend around 1-2 hours on the coding part of this challenge. Scale down the requirements to fit the time allowed if needed. It's also A-okay

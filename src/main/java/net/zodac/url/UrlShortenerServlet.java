@@ -12,7 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class UrlShortenerServlet extends HttpServlet {
 
-    // TODO: Move to redis/valkey
+    // TODO: Monitoring/logging?
+
+    // TODO: Move to redis/valkey - do I also want a caffeine cache in front of it?
     private static final Map<String, String> SHORT_TO_URL = new ConcurrentHashMap<>();
     private static final Map<String, String> URL_TO_SHORT = new ConcurrentHashMap<>();
     private static final String HTML_CONTENT_TYPE = "text/html;charset=UTF-8";

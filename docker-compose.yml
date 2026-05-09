@@ -1,0 +1,21 @@
+networks:
+  url-shortener:
+    name: url-shortener
+    driver: bridge
+
+services:
+
+  url-shortener:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      cache:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: "cache"
+      REDIS_PORT: 6379
+    networks:
+      - url-shortener
+    ports:
+      - "8080:8080"
