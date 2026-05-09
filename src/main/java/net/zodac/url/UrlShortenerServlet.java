@@ -7,21 +7,28 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Implementation of {@link HttpServlet} which exposed endpoints for URL shortening and resolving.
+ */
 public class UrlShortenerServlet extends HttpServlet {
 
     // TODO: Move to redis/valkey
     private static final Map<String, String> SHORT_TO_URL = new ConcurrentHashMap<>();
     private static final Map<String, String> URL_TO_SHORT = new ConcurrentHashMap<>();
+    private static final String HTML_CONTENT_TYPE = "text/html;charset=UTF-8";
 
+    // TODO: Add some API docs
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         final String shortCode = request.getPathInfo().substring(1);
+        if (!SHORT_TO_URL.containsKey(shortCode)) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            response.getWriter().write(String.format("Invalid short code: [%s]", shortCode));
+            return;
+        }
+
+        response.setContentType(HTML_CONTENT_TYPE);
         final String originalUrl = SHORT_TO_URL.get(shortCode);
-
-        // TODO: Handle miss
-//        response.getWriter().write("<p>Hello from URL Shortener</p>");
-
-        response.setContentType("text/html;charset=UTF-8");
         response.sendRedirect(originalUrl);
     }
 
@@ -31,7 +38,7 @@ public class UrlShortenerServlet extends HttpServlet {
 
         if (!UrlValidator.isValid(inputUrl)) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Invalid URL: " + inputUrl);
+            response.getWriter().write(String.format("Invalid URL: [%s]", inputUrl));
             return;
         }
 
@@ -39,7 +46,7 @@ public class UrlShortenerServlet extends HttpServlet {
         SHORT_TO_URL.putIfAbsent(shortCode, inputUrl);
         final String shortUrl = URL_TO_SHORT.computeIfAbsent(inputUrl, unused -> generateShortUrl(request, shortCode));
 
-        response.setContentType("text/html;charset=UTF-8");
+        response.setContentType(HTML_CONTENT_TYPE);
         response.setStatus(HttpServletResponse.SC_CREATED);
         response.getWriter().write(
             """
