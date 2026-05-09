@@ -22,13 +22,24 @@ public class UrlShortenerServlet extends HttpServlet {
         )
         .build();
 
+    private static final String STATUS_PATH = "/status";
+
     // TODO: Add some API docs
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
         try {
             response.setContentType(HTML_CONTENT_TYPE);
-            final String shortCode = request.getPathInfo().substring(1);
 
+            final String pathInfo = request.getPathInfo();
+
+            // Healthcheck endpoint
+            if (STATUS_PATH.equals(pathInfo)) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write("<html><body><p>OK</p></body></html>");
+                return;
+            }
+
+            final String shortCode = request.getPathInfo().substring(1);
             final String originalUrl = JEDIS.get(SHORT_TO_URL_PREFIX + shortCode);
             if (originalUrl == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

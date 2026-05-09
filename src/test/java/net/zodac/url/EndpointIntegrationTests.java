@@ -31,6 +31,19 @@ class EndpointIntegrationTests {
     private static final String VALID_HTTP_SHORT_CODE = "faZolJjBhq";
 
     @Test
+    void validateStatusEndpoint() throws IOException, InterruptedException {
+        final HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/status"))
+            .header("Content-Type", "text/html")
+            .GET()
+            .build();
+        final HttpResponse<Void> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.discarding());
+
+        assertThat(response.statusCode())
+            .isEqualTo(HttpURLConnection.HTTP_OK);
+    }
+
+    @Test
     void createShortCodeForHttps() throws IOException, InterruptedException {
         final HttpRequest request = buildPostRequest(VALID_HTTPS_URL);
         final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
