@@ -1,6 +1,7 @@
 # URL Shortener — Coding Challenge
 
-*Please spend around 1-2 hours on the coding part of this challenge. Scale down the requirements to fit the time allowed if needed. It's also A-okay to update the README outside of that time.*
+*Please spend around 1-2 hours on the coding part of this challenge. Scale down the requirements to fit the time allowed if needed. It's also A-okay
+to update the README outside of that time.*
 
 *And it goes without saying, but it doesn't make sense to use agents!*
 
@@ -39,9 +40,11 @@ Implement a URL shortener API inside `UrlShortenerServlet.java`.
 
 In-memory storage is fine.
 
-You're welcome to add dependencies to `pom.xml` and introduce new classes, but please use the `Servlet` class provided. There are no other constraints.
+You're welcome to add dependencies to `pom.xml` and introduce new classes, but please use the `Servlet` class provided. There are no other
+constraints.
 
 **Please include a short note in this README** covering:
+
 - How to use your API (endpoints, request format, examples)
 - Any assumptions or shortcuts you made
 - Anything you would do differently with more time

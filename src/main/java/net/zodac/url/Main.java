@@ -1,4 +1,4 @@
-package net.zodac.urlshortener;
+package net.zodac.url;
 
 import java.io.File;
 

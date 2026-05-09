@@ -42,7 +42,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>net.zodac.urlshortener.Main</mainClass>
+							<mainClass>net.zodac.url.Main</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
