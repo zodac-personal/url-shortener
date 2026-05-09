@@ -44,41 +44,49 @@ class EndpointIntegrationTests {
     }
 
     @Test
-    void createShortCodeForHttps() throws IOException, InterruptedException {
-        final HttpRequest request = buildPostRequest(VALID_HTTPS_URL);
-        final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    void createShortCodeAndResolveOriginalUrlForHttps() throws IOException, InterruptedException {
+        final HttpRequest shortenRequest = buildPostRequest(VALID_HTTPS_URL);
+        final HttpResponse<String> shortenResponse = HTTP_CLIENT.send(shortenRequest, HttpResponse.BodyHandlers.ofString());
 
-        assertThat(response.statusCode())
+        assertThat(shortenResponse.statusCode())
             .isEqualTo(HttpURLConnection.HTTP_CREATED);
 
-        assertThat(response.body())
+        assertThat(shortenResponse.body())
             .contains("http://localhost:8080/" + VALID_HTTPS_SHORT_CODE);
-    }
 
-    @Test
-    void resolveOriginalUrlForHttps() throws IOException, InterruptedException {
-        final HttpRequest request = buildGetRequest(VALID_HTTPS_SHORT_CODE);
-        final HttpResponse<Void> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.discarding());
+        final HttpRequest resolveRequest = buildGetRequest(VALID_HTTPS_SHORT_CODE);
+        final HttpResponse<Void> resolveResponse = HTTP_CLIENT.send(resolveRequest, HttpResponse.BodyHandlers.discarding());
 
-        assertThat(response.statusCode())
+        assertThat(resolveResponse.statusCode())
             .isEqualTo(HttpURLConnection.HTTP_MOVED_TEMP);
 
-        final Optional<String> location = response.headers().firstValue("location");
+        final Optional<String> location = resolveResponse.headers().firstValue("location");
         assertThat(location)
             .isPresent()
             .hasValue(VALID_HTTPS_URL);
     }
 
     @Test
-    void createShortCodeForHttp() throws IOException, InterruptedException {
-        final HttpRequest request = buildPostRequest(VALID_HTTP_URL);
-        final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    void createShortCodeAndResolveOriginalUrlForHttp() throws IOException, InterruptedException {
+        final HttpRequest shortenRequest = buildPostRequest(VALID_HTTP_URL);
+        final HttpResponse<String> shortenResponse = HTTP_CLIENT.send(shortenRequest, HttpResponse.BodyHandlers.ofString());
 
-        assertThat(response.statusCode())
+        assertThat(shortenResponse.statusCode())
             .isEqualTo(HttpURLConnection.HTTP_CREATED);
 
-        assertThat(response.body())
+        assertThat(shortenResponse.body())
             .contains("http://localhost:8080/" + VALID_HTTP_SHORT_CODE);
+
+        final HttpRequest resolveRequest = buildGetRequest(VALID_HTTP_SHORT_CODE);
+        final HttpResponse<Void> resolveResponse = HTTP_CLIENT.send(resolveRequest, HttpResponse.BodyHandlers.discarding());
+
+        assertThat(resolveResponse.statusCode())
+            .isEqualTo(HttpURLConnection.HTTP_MOVED_TEMP);
+
+        final Optional<String> location = resolveResponse.headers().firstValue("location");
+        assertThat(location)
+            .isPresent()
+            .hasValue(VALID_HTTP_URL);
     }
 
     @Test
