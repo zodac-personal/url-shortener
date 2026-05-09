@@ -24,53 +24,63 @@ public class UrlShortenerServlet extends HttpServlet {
 
     // TODO: Add some API docs
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String shortCode = request.getPathInfo().substring(1);
+    protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+        try {
+            response.setContentType(HTML_CONTENT_TYPE);
+            final String shortCode = request.getPathInfo().substring(1);
 
-        final String originalUrl = JEDIS.get(SHORT_TO_URL_PREFIX + shortCode);
-        if (originalUrl == null) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            response.getWriter().write(String.format("Invalid short code: [%s]", shortCode));
-            return;
+            final String originalUrl = JEDIS.get(SHORT_TO_URL_PREFIX + shortCode);
+            if (originalUrl == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.getWriter().write(String.format("Invalid short code: [%s]", shortCode));
+                return;
+            }
+
+            response.sendRedirect(originalUrl);
+        } catch (final Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Internal server error");
         }
-
-        response.setContentType(HTML_CONTENT_TYPE);
-        response.sendRedirect(originalUrl);
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String inputUrl = request.getParameter("url");
+    protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+        try {
+            response.setContentType(HTML_CONTENT_TYPE);
+            final String inputUrl = request.getParameter("url");
 
-        if (!UrlValidator.isValid(inputUrl)) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write(String.format("Invalid URL: [%s]", inputUrl));
-            return;
+            if (!UrlValidator.isValid(inputUrl)) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write(String.format("Invalid URL: [%s]", inputUrl));
+                return;
+            }
+
+            final String shortCode = ShortCodeGenerator.generate(inputUrl);
+            final String shortUrl = getOrCreateShortUrl(request, inputUrl, shortCode);
+
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            response.getWriter().write(
+                """
+                    <html>
+                    	<body>
+                    		<h1>Hello from URL Shortener</h1>
+                    
+                    		<div>
+                    			<b>Original:</b>
+                    			%s
+                    		</div>
+                    
+                    		<div>
+                    			<b>Shortened:</b>
+                    			%s
+                    		</div>
+                    	</body>
+                    </html>
+                    """.formatted(inputUrl, shortUrl));
+        } catch (final Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Internal server error");
         }
-
-        final String shortCode = ShortCodeGenerator.generate(inputUrl);
-        final String shortUrl = getOrCreateShortUrl(request, inputUrl, shortCode);
-
-        response.setContentType(HTML_CONTENT_TYPE);
-        response.setStatus(HttpServletResponse.SC_CREATED);
-        response.getWriter().write(
-            """
-                <html>
-                	<body>
-                		<h1>Hello from URL Shortener</h1>
-                
-                		<div>
-                			<b>Original:</b>
-                			%s
-                		</div>
-                
-                		<div>
-                			<b>Shortened:</b>
-                			%s
-                		</div>
-                	</body>
-                </html>
-                """.formatted(inputUrl, shortUrl));
     }
 
     private static String getOrCreateShortUrl(HttpServletRequest request, String inputUrl, String shortCode) {
