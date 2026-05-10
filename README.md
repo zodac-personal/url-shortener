@@ -5,11 +5,11 @@
 The application can be launched with `docker`:
 
 ```shell
-docker compose up --build -d --scale url-shortener=10
+docker compose up --build -d --scale backend=10
 ```
 
-This will launch the external cache, the load-balancer, and 10 replicas of the Java `url-shortener` backend. You should see the following line in the
-console per replica to confirm the application started successfully:
+This will launch the external cache, the load-balancer, and 10 replicas of the Java backend. You should see the following line in the console per
+replica to confirm the application started successfully:
 
 ```shell
 Server started on http://localhost:8080
@@ -24,16 +24,16 @@ Similarly, you can use `docker ps` to verify the status of the container:
 # Java backends
 docker ps -a | grep url-shortener
 # Output
-a39b484cf236   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 16 seconds (healthy)   8080/tcp          url-shortener-url-shortener-6
-8f2422a74b97   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 16 seconds (healthy)   8080/tcp          url-shortener-url-shortener-1
-61da27d913dc   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 15 seconds (healthy)   8080/tcp          url-shortener-url-shortener-7
-6c56ad08d034   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 15 seconds (healthy)   8080/tcp          url-shortener-url-shortener-3
-ba235545679b   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 15 seconds (healthy)   8080/tcp          url-shortener-url-shortener-8
-b23e72efedb0   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 14 seconds (healthy)   8080/tcp          url-shortener-url-shortener-2
-44abcef2aad9   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 14 seconds (healthy)   8080/tcp          url-shortener-url-shortener-5
-bbf06f1c4cb2   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 14 seconds (healthy)   8080/tcp          url-shortener-url-shortener-4
-d7326714334c   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 13 seconds (healthy)   8080/tcp          url-shortener-url-shortener-10
-94aa29d304d2   url-shortener-url-shortener  "java -jar app.jar"      22 seconds ago   Up 13 seconds (healthy)   8080/tcp          url-shortener-url-shortener-9
+a39b484cf236   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 16 seconds (healthy)   8080/tcp          url-shortener-backend-6
+8f2422a74b97   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 16 seconds (healthy)   8080/tcp          url-shortener-backend-1
+61da27d913dc   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 15 seconds (healthy)   8080/tcp          url-shortener-backend-7
+6c56ad08d034   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 15 seconds (healthy)   8080/tcp          url-shortener-backend-3
+ba235545679b   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 15 seconds (healthy)   8080/tcp          url-shortener-backend-8
+b23e72efedb0   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 14 seconds (healthy)   8080/tcp          url-shortener-backend-2
+44abcef2aad9   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 14 seconds (healthy)   8080/tcp          url-shortener-backend-5
+bbf06f1c4cb2   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 14 seconds (healthy)   8080/tcp          url-shortener-backend-4
+d7326714334c   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 13 seconds (healthy)   8080/tcp          url-shortener-backend-10
+94aa29d304d2   url-shortener-backend  "java -jar app.jar"      22 seconds ago   Up 13 seconds (healthy)   8080/tcp          url-shortener-backend-9
 
 # Cache
 docker ps -a | grep cache
@@ -50,8 +50,7 @@ docker ps -a | grep load-balancer
 
 ## Automated Testing
 
-First start the application (either option defined in [Deployment](#deployment)), then run `mvn clean install -Pintegration-tests` to run all unit
-tests and the endpoint tests.
+First start the application then run `mvn clean install -Pintegration-tests` to run all unit tests and the endpoint tests.
 
 ```shell
 docker compose up --build -d
@@ -137,7 +136,7 @@ Found value in cache
 You can confirm the load-balancer is working by stopping and restarting the application with multiple replicas
 
 ```shell
-docker compose down && docker compose up --build --scale url-shortener=10
+docker compose down && docker compose up --build --scale backend=10
 ```
 
 Then run some **POST** requests to shorten a URL (can be the same request):
@@ -146,13 +145,13 @@ Then run some **POST** requests to shorten a URL (can be the same request):
 curl -X POST -d 'url=https://www.youtube.com'  http://localhost:8080
 ```
 
-You should be able to see logs across the `url-shortener` instances showing the load-balancer is spreading the requests across the replicas:
+You should be able to see logs across the `backend` instances showing the load-balancer is spreading the requests across the replicas:
 
 ```shell
-url-shortener-8   | Found value in cache
-url-shortener-6   | Found value in cache
-url-shortener-2   | Found value in cache
-url-shortener-10  | Found value in cache
+backend-8   | Found value in cache
+backend-6   | Found value in cache
+backend-2   | Found value in cache
+backend-10  | Found value in cache
 ```
 
 ## Assumptions

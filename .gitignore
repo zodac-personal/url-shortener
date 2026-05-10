@@ -3,3 +3,4 @@
 target/
 pom.xml.versionsBackup
 tomcat.8080/
+dependency-reduced-pom.xml

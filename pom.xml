@@ -26,9 +26,9 @@
         <nullaway.version>0.13.4</nullaway.version>
 
         <!-- Plugin versions -->
-        <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <maven-failsafe-plugin.version>3.5.5</maven-failsafe-plugin.version>
+        <maven-shade-plugin.version>3.5.3</maven-shade-plugin.version>
         <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
     </properties>
 
@@ -85,27 +85,50 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>${maven-assembly-plugin.version}</version>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>net.zodac.url.Main</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <filters>
+                        <!-- Remove duplicate content from multiple JARs -->
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>**/module-info.class</exclude>
+                                <exclude>META-INF/NOTICE*</exclude>
+                                <exclude>META-INF/LICENSE*</exclude>
+                                <exclude>META-INF/DEPENDENCIES*</exclude>
+                                <exclude>META-INF/MANIFEST*</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
                     <finalName>url-shortener</finalName>
-                    <appendAssemblyId>false</appendAssemblyId>
+                    <transformers>
+                        <!-- Ensure the manifest file has the correct main class -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>net.zodac.url.Main</mainClass>
+                        </transformer>
+
+                        <!-- Merge Log4j service provider files -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+
+                        <!-- Append Log4j configuration files to prevent overwriting -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/log4j-provider.properties</resource>
+                        </transformer>
+
+                        <!-- Ensure log4j configuration files are included -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                            <resource>META-INF/services/org.apache.logging.log4j.spi.Provider</resource>
+                        </transformer>
+                    </transformers>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>shade</goal>
                         </goals>
+                        <phase>package</phase>
                     </execution>
                 </executions>
             </plugin>

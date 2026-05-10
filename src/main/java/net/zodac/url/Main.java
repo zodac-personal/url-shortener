@@ -11,7 +11,7 @@ import org.apache.catalina.startup.Tomcat;
  */
 public class Main {
 
-    private static final int TOMCAT_PORT = EnvironmentVariableUtils.getIntOrDefault("TOMCAT_PORT", 8080);
+    private static final int TOMCAT_PORT = 8080;
 
     /**
      * Main method to start the Tomcat instance.
