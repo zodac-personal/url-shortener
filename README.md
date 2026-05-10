@@ -174,10 +174,6 @@ backend-10  | Found value in cache
 
 ## Ran Out Of Time
 
-- I would have done a minimal docker image with distroless/non-root and use `jlink` to reduce JDK size
-    - I would also have made the services in [docker-compose.yml](docker-compose.yml) more secure (drop capabilities, no privileges, resource limits,
-      etc.)
-    - Added a `/status` or `/health` endpoint so a `HEALTHCHECK` could be included
 - Proper API docs (**OpenAPI**/**Swagger** or **RAML**)
 - Added **nginx** (or a similar reverse proxy) to handle SSL termination
 - Actual integration tests for the full E2E flow (if additional components were added)
