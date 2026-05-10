@@ -11,14 +11,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import net.zodac.RequiresRunningApplication;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests for the exposed endpoints for the application.
  *
  * <p>
- * Application must already be running for these tests to pass.
+ * Application must already be running for these tests to pass, otherwise they will fail due to {@link RequiresRunningApplication}.
  */
+@RequiresRunningApplication
 class EndpointIntegrationTests {
 
     private static final String BASE_URL = System.getProperty("base.url", "http://localhost:8080");
