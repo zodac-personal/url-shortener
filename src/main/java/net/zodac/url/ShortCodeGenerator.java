@@ -34,7 +34,7 @@ final class ShortCodeGenerator {
                 .withoutPadding()
                 .encodeToString(digestHash)
                 .substring(0, SHORT_CODE_LENGTH);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (final NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }

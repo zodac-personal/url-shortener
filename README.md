@@ -66,19 +66,17 @@ curl -X POST -d 'url=https://www.youtube.com' http://localhost:8080
 
 # Output
 <html>
-	<body>
-		<h1>Hello from URL Shortener</h1>
-
-		<div>
-			<b>Original:</b>
-			https://www.youtube.com
-		</div>
-
-		<div>
-			<b>Shortened:</b>
-			http://localhost:8080/2TMawShw8p
-		</div>
-	</body>
+    <body>
+        <h1>Hello from URL Shortener</h1>
+        <div>
+            <b>Original:</b>
+            https://www.youtube.com
+        </div>
+        <div>
+            <b>Shortened:</b>
+            http://localhost:8080/2TMawShw8p
+        </div>
+    </body>
 </html>
 ```
 

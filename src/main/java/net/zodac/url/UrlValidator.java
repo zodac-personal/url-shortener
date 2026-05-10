@@ -7,9 +7,13 @@ import java.util.Set;
 /**
  * Utility class used to validate URLs.
  */
-class UrlValidator {
+final class UrlValidator {
 
     private static final Set<String> VALID_URL_SCHEMES = Set.of("HTTP", "HTTPS");
+
+    private UrlValidator() {
+
+    }
 
     /**
      * For the {@code inputUrl}, checks if it's a valid {@link URI}, has a {@link URI#getScheme()} in {@link #VALID_URL_SCHEMES}, and has a non-null

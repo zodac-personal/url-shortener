@@ -1,4 +1,4 @@
-package net.zodac.url;
+package net.zodac.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

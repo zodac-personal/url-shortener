@@ -4,12 +4,15 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import net.zodac.util.EnvironmentVariableUtils;
 import redis.clients.jedis.RedisClient;
 
 /**
  * Implementation of {@link HttpServlet} which exposed endpoints for URL shortening and resolving.
  */
 public class UrlShortenerServlet extends HttpServlet {
+
+    private static final long serialVersionUID = -6921522406540539222L;
 
     // TODO: Monitoring/logging?
 
@@ -73,28 +76,25 @@ public class UrlShortenerServlet extends HttpServlet {
             response.getWriter().write(
                 """
                     <html>
-                    	<body>
-                    		<h1>Hello from URL Shortener</h1>
-                    
-                    		<div>
-                    			<b>Original:</b>
-                    			%s
-                    		</div>
-                    
-                    		<div>
-                    			<b>Shortened:</b>
-                    			%s
-                    		</div>
-                    	</body>
-                    </html>
-                    """.formatted(inputUrl, shortUrl));
+                        <body>
+                            <h1>Hello from URL Shortener</h1>
+                            <div>
+                                <b>Original:</b>
+                                %s
+                            </div>
+                            <div>
+                                <b>Shortened:</b>
+                                %s
+                            </div>
+                        </body>
+                    </html>""".formatted(inputUrl, shortUrl));
         } catch (final Exception e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write("Internal server error");
         }
     }
 
-    private static String getOrCreateShortUrl(HttpServletRequest request, String inputUrl, String shortCode) {
+    private static String getOrCreateShortUrl(final HttpServletRequest request, final String inputUrl, final String shortCode) {
         final String existingShortUrl = JEDIS.get(URL_TO_SHORT_PREFIX + inputUrl);
         if (existingShortUrl != null) {
             System.out.println("Found value in cache");
@@ -108,7 +108,7 @@ public class UrlShortenerServlet extends HttpServlet {
         return shortUrl;
     }
 
-    private static String generateShortUrl(HttpServletRequest request, final String shortCode) {
+    private static String generateShortUrl(final HttpServletRequest request, final String shortCode) {
         return String.format("%s://%s:%s/%s", request.getScheme(), request.getServerName(), request.getServerPort(), shortCode);
     }
 

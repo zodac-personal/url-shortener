@@ -1,7 +1,7 @@
 package net.zodac.url;
 
 import java.io.File;
-
+import net.zodac.util.EnvironmentVariableUtils;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
@@ -9,9 +9,13 @@ import org.apache.catalina.startup.Tomcat;
 /**
  * Main application class.
  */
-public class Main {
+public final class Main {
 
     private static final int TOMCAT_PORT = 8080;
+
+    private Main() {
+
+    }
 
     /**
      * Main method to start the Tomcat instance.

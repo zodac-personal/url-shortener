@@ -1,9 +1,9 @@
-package net.zodac.url;
+package net.zodac.util;
 
 /**
- * Utility class for retrieving environment variables
+ * Utility class for retrieving environment variables.
  */
-final class EnvironmentVariableUtils {
+public final class EnvironmentVariableUtils {
 
     private EnvironmentVariableUtils() {
 

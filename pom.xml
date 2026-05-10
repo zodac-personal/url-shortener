@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -10,8 +9,16 @@
     <packaging>jar</packaging>
 
     <properties>
-        <java-release>26</java-release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java-release>26</java-release>
+        <maven-release>3.9.15</maven-release>
+
+        <!-- Profile flags -->
+        <skip-linters>true</skip-linters>
+        <skip-artifact-build>false</skip-artifact-build>
+        <skip-tests>true</skip-tests>
+        <!-- Adding so Maven plugins will not copy/compile test resources -->
+        <maven.test.skip>${skip-tests}</maven.test.skip>
 
         <!-- Dependency versions -->
         <tomcat.version>11.0.22</tomcat.version>
@@ -22,14 +29,40 @@
         <junit-bom.version>6.1.0-RC1</junit-bom.version>
 
         <!-- Linter dependency versions -->
+        <asm-version>9.9.1</asm-version>
+        <checkstyle.version>13.4.2</checkstyle.version>
         <error_prone_core.version>2.49.0</error_prone_core.version>
         <nullaway.version>0.13.4</nullaway.version>
+        <pmd.version>7.24.0</pmd.version>
+        <spotbugs.version>4.9.8</spotbugs.version>
 
         <!-- Plugin versions -->
+        <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+        <maven-dependency-plugin.version>3.10.0</maven-dependency-plugin.version>
+        <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
         <maven-failsafe-plugin.version>3.5.5</maven-failsafe-plugin.version>
+        <maven-install-plugin.version>3.1.4</maven-install-plugin.version>
+        <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
         <maven-shade-plugin.version>3.5.3</maven-shade-plugin.version>
         <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
+        <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
+
+        <!-- Linter Plugin Versions -->
+        <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+        <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+        <maven-pmd-plugin.version>3.28.0</maven-pmd-plugin.version>
+        <sortpom-maven-plugin.version>4.0.0</sortpom-maven-plugin.version>
+        <spotbugs-maven-plugin.version>4.9.8.3</spotbugs-maven-plugin.version>
+
+        <!-- Linter Properties -->
+        <ci-config-directory>${project.basedir}/ci/java</ci-config-directory>
+        <checkstyle-file>${ci-config-directory}/checkstyle.xml</checkstyle-file>
+        <license-file>${ci-config-directory}/license-template.txt</license-file>
+        <license-header-definition-file>${ci-config-directory}/license-header-definition.txt</license-header-definition-file>
+        <pmd-ruleset>${ci-config-directory}/pmd-ruleset.xml</pmd-ruleset>
+        <spotbugs-include-file>${ci-config-directory}/spotbugs-include-filter-file.xml</spotbugs-include-file>
+        <spotbugs-exclude-file>${ci-config-directory}/spotbugs-exclude-filter-file.xml</spotbugs-exclude-file>
     </properties>
 
     <dependencyManagement>
@@ -85,52 +118,36 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven-shade-plugin.version}</version>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
                 <configuration>
-                    <createDependencyReducedPom>true</createDependencyReducedPom>
-                    <filters>
-                        <!-- Remove duplicate content from multiple JARs -->
-                        <filter>
-                            <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>**/module-info.class</exclude>
-                                <exclude>META-INF/NOTICE*</exclude>
-                                <exclude>META-INF/LICENSE*</exclude>
-                                <exclude>META-INF/DEPENDENCIES*</exclude>
-                                <exclude>META-INF/MANIFEST*</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
-                    <finalName>url-shortener</finalName>
-                    <transformers>
-                        <!-- Ensure the manifest file has the correct main class -->
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>net.zodac.url.Main</mainClass>
-                        </transformer>
-
-                        <!-- Merge Log4j service provider files -->
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-
-                        <!-- Append Log4j configuration files to prevent overwriting -->
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                            <resource>META-INF/log4j-provider.properties</resource>
-                        </transformer>
-
-                        <!-- Ensure log4j configuration files are included -->
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                            <resource>META-INF/services/org.apache.logging.log4j.spi.Provider</resource>
-                        </transformer>
-                    </transformers>
+                    <configLocation>${checkstyle-file}</configLocation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <propertyExpansion>checkstyle.config.path=${ci-config-directory}</propertyExpansion>
+                    <skip>${skip-linters}</skip>
+                    <violationSeverity>info</violationSeverity>
                 </configuration>
+                <!-- Overwrite the default version of Checkstyle -->
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>shade</goal>
+                            <goal>check</goal>
                         </goals>
-                        <phase>package</phase>
+                        <phase>verify</phase>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>${maven-clean-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -174,15 +191,334 @@
                     <fork>true</fork>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <configuration>
+                    <failOnWarning>true</failOnWarning>
+                    <!-- We're only interested in 'compile' scope dependencies when performing analysis -->
+                    <ignoreNonCompile>true</ignoreNonCompile>
+                    <ignoredUnusedDeclaredDependencies>
+                        <!-- Included so the logging files are on the classpath at runtime - not directly used -->
+                        <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-core::</ignoredUnusedDeclaredDependency>
+                        <!-- Used at runtime to override the logging output from Selenium classes -->
+                        <ignoredUnusedDeclaredDependency>org.slf4j:jul-to-slf4j::</ignoredUnusedDeclaredDependency>
+                    </ignoredUnusedDeclaredDependencies>
+                    <ignoredUsedUndeclaredDependencies>
+                        <!-- Included with nullaway, which is scoped 'provided' but appears as a false-positive -->
+                        <ignoredUsedUndeclaredDependency>org.checkerframework:dataflow-nullaway::</ignoredUsedUndeclaredDependency>
+                    </ignoredUsedUndeclaredDependencies>
+                    <skip>${skip-linters}</skip>
+                </configuration>
+                <dependencies>
+                    <!-- Forces support for latest Java bytecode -->
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                        <version>${asm-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm-commons</artifactId>
+                        <version>${asm-version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>analyze-only</goal>
+                        </goals>
+                        <!-- Needs to execute after the 'compile' phase, but before 'test-compile', or else test dependencies cause failures -->
+                        <phase>process-classes</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
+                <configuration>
+                    <rules>
+                        <banDynamicVersions>
+                            <excludedScopes/>
+                        </banDynamicVersions>
+                        <bannedDependencies>
+                            <excludes>
+                                <exclude>junit:junit</exclude>
+                                <exclude>junit:junit-dep</exclude>
+                            </excludes>
+                            <message>JUnit4 is banned, use JUnit 5</message>
+                        </bannedDependencies>
+                        <dependencyConvergence/>
+                        <requireJavaVersion>
+                            <version>[${java-release},)</version>
+                        </requireJavaVersion>
+                        <requireMavenVersion>
+                            <version>[${maven-release},4.0)</version>
+                        </requireMavenVersion>
+                    </rules>
+                    <skip>${skip-linters}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>${maven-install-plugin.version}</version>
+                <configuration>
+                    <skip>${skip-artifact-build}</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <doclint>all,-missing</doclint>
+                    <failOnWarnings>true</failOnWarnings>
+                    <quiet>true</quiet>
+                    <release>${java-release}</release>
+                    <serialwarn>true</serialwarn>
+                    <skip>${skip-linters}</skip>
+                    <validateLinks>true</validateLinks>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>javadoc</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>${maven-pmd-plugin.version}</version>
+                <configuration>
+                    <failOnViolation>true</failOnViolation>
+                    <includeTests>false</includeTests>
+                    <linkXRef>false</linkXRef>
+                    <printFailingErrors>true</printFailingErrors>
+                    <rulesets>
+                        <ruleset>${pmd-ruleset}</ruleset>
+                    </rulesets>
+                    <skip>${skip-linters}</skip>
+                    <targetJdk>${java-release}</targetJdk>
+                </configuration>
+                <!-- Overwrite the default version of PMD -->
+                <dependencies>
+                    <dependency>
+                        <groupId>net.sourceforge.pmd</groupId>
+                        <artifactId>pmd-core</artifactId>
+                        <version>${pmd.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>net.sourceforge.pmd</groupId>
+                        <artifactId>pmd-java</artifactId>
+                        <version>${pmd.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>net.sourceforge.pmd</groupId>
+                        <artifactId>pmd-javascript</artifactId>
+                        <version>${pmd.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>net.sourceforge.pmd</groupId>
+                        <artifactId>pmd-jsp</artifactId>
+                        <version>${pmd.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
+                <configuration>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <filters>
+                        <!-- Remove duplicate content from multiple JARs -->
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>**/module-info.class</exclude>
+                                <exclude>META-INF/NOTICE*</exclude>
+                                <exclude>META-INF/LICENSE*</exclude>
+                                <exclude>META-INF/DEPENDENCIES*</exclude>
+                                <exclude>META-INF/MANIFEST*</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <skip>${skip-artifact-build}</skip>
+                    <finalName>url-shortener</finalName>
+                    <transformers>
+                        <!-- Ensure the manifest file has the correct main class -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>net.zodac.url.Main</mainClass>
+                        </transformer>
+
+                        <!-- Merge Log4j service provider files -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+
+                        <!-- Append Log4j configuration files to prevent overwriting -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/log4j-provider.properties</resource>
+                        </transformer>
+
+                        <!-- Ensure log4j configuration files are included -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                            <resource>META-INF/services/org.apache.logging.log4j.spi.Provider</resource>
+                        </transformer>
+                    </transformers>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.ekryd.sortpom</groupId>
+                <artifactId>sortpom-maven-plugin</artifactId>
+                <version>${sortpom-maven-plugin.version}</version>
+                <configuration>
+                    <createBackupFile>false</createBackupFile>
+                    <expandEmptyElements>false</expandEmptyElements>
+                    <indentAttribute>schemaLocation</indentAttribute>
+                    <nrOfIndentSpace>4</nrOfIndentSpace>
+                    <skip>${skip-linters}</skip>
+                    <sortDependencies>scope,artifactId</sortDependencies>
+                    <sortDependencyManagement>scope,artifactId</sortDependencyManagement>
+                    <sortExecutions>true</sortExecutions>
+                    <sortModules>true</sortModules>
+                    <sortPlugins>artifactId</sortPlugins>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>sort</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>${spotbugs-maven-plugin.version}</version>
+                <configuration>
+                    <effort>max</effort>
+                    <includeFilterFile>${spotbugs-include-file}</includeFilterFile>
+                    <excludeFilterFile>${spotbugs-exclude-file}</excludeFilterFile>
+                    <skip>${skip-linters}</skip>
+                </configuration>
+                <dependencies>
+                    <!-- Overwrite the default version of SpotBugs -->
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>${spotbugs.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                            <goal>spotbugs</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${versions-maven-plugin.version}</version>
+                <configuration>
+                    <!-- List of dependencies to not be updated, due to incompatible versions -->
+                    <!-- If a valid update becomes available, it can be updated and removed from below -->
+                    <excludes/>
+                    <generateBackupPoms>false</generateBackupPoms>
+                    <ruleSet>
+                        <ignoreVersions>
+                            <!-- Exclude alpha, beta, milestone and SNAPSHOT releases -->
+                            <ignoreVersion>
+                                <type>regex</type>
+                                <version>.*(-alpha|-beta|-M\d|-SNAPSHOT).*</version>
+                            </ignoreVersion>
+                        </ignoreVersions>
+                    </ruleSet>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <!-- Profile to run both unit tests and lints (no integration tests) -->
         <profile>
-            <id>unit-tests-only</id>
+            <id>activate_all</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>all</name>
+                </property>
             </activation>
+            <properties>
+                <skip-artifact-build>false</skip-artifact-build>
+                <skip-linters>false</skip-linters>
+                <skip-tests>false</skip-tests>
+            </properties>
+        </profile>
+
+        <!-- Profile used to execute lints -->
+        <profile>
+            <id>activate_lints</id>
+            <activation>
+                <property>
+                    <name>lint</name>
+                </property>
+            </activation>
+            <properties>
+                <skip-artifact-build>true</skip-artifact-build>
+                <skip-linters>false</skip-linters>
+            </properties>
+        </profile>
+
+        <!-- Profile used to execute unit tests -->
+        <profile>
+            <id>activate_tests</id>
+            <activation>
+                <property>
+                    <name>tests</name>
+                </property>
+            </activation>
+            <properties>
+                <skip-artifact-build>true</skip-artifact-build>
+                <skip-tests>false</skip-tests>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -201,8 +537,19 @@
                 </plugins>
             </build>
         </profile>
+
+        <!-- Profile used to execute integration tests -->
         <profile>
             <id>integration-tests</id>
+            <activation>
+                <property>
+                    <name>integration-tests</name>
+                </property>
+            </activation>
+            <properties>
+                <skip-artifact-build>true</skip-artifact-build>
+                <skip-tests>false</skip-tests>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
