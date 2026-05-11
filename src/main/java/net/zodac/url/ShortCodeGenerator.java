@@ -4,12 +4,15 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Utility class used to convert URLs into shortened versions.
  */
 final class ShortCodeGenerator {
 
+    private static final Logger LOGGER = LogManager.getLogger(ShortCodeGenerator.class);
     private static final String HASH_ALGORITHM = "SHA-256";
     private static final int SHORT_CODE_LENGTH = 10;
 
@@ -27,6 +30,7 @@ final class ShortCodeGenerator {
      */
     static String generate(final String inputUrl) {
         try {
+            LOGGER.trace("Generating shortcode for {}", inputUrl);
             final MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
             final byte[] digestHash = digest.digest(inputUrl.getBytes(StandardCharsets.UTF_8));
 

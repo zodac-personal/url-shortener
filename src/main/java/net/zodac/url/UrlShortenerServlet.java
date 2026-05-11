@@ -72,8 +72,7 @@ public class UrlShortenerServlet extends HttpServlet {
                 return;
             }
 
-            final String shortCode = ShortCodeGenerator.generate(inputUrl);
-            final String shortUrl = getOrCreateShortUrl(request, inputUrl, shortCode);
+            final String shortUrl = getOrCreateShortUrl(request, inputUrl);
             LOGGER.debug("Input URL [{}] shortened to [{}]", inputUrl, shortUrl);
 
             response.setStatus(HttpServletResponse.SC_CREATED);
@@ -98,14 +97,15 @@ public class UrlShortenerServlet extends HttpServlet {
         }
     }
 
-    private static String getOrCreateShortUrl(final HttpServletRequest request, final String inputUrl, final String shortCode) {
+    private static String getOrCreateShortUrl(final HttpServletRequest request, final String inputUrl) {
         final String existingShortUrl = JEDIS.get(URL_TO_SHORT_PREFIX + inputUrl);
         if (existingShortUrl != null) {
-            LOGGER.debug("Found value for 'key' {} in cache", shortCode);
+            LOGGER.debug("Found value for URL '{}' in cache", inputUrl);
             return existingShortUrl;
         }
 
-        LOGGER.debug("Nothing in cache, generating new short code");
+        LOGGER.debug("Nothing in cache, generating new shortened URL");
+        final String shortCode = ShortCodeGenerator.generate(inputUrl);
         final String shortUrl = generateShortUrl(request, shortCode);
         JEDIS.set(SHORT_TO_URL_PREFIX + shortCode, inputUrl);
         JEDIS.set(URL_TO_SHORT_PREFIX + inputUrl, shortUrl);
@@ -113,6 +113,7 @@ public class UrlShortenerServlet extends HttpServlet {
     }
 
     private static String generateShortUrl(final HttpServletRequest request, final String shortCode) {
+        LOGGER.trace("Generating short URL for {}", shortCode);
         return String.format("%s://%s:%s/%s", request.getScheme(), request.getServerName(), request.getServerPort(), shortCode);
     }
 
