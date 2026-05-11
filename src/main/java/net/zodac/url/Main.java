@@ -5,6 +5,9 @@ import net.zodac.util.EnvironmentVariableUtils;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * Main application class.
@@ -12,6 +15,7 @@ import org.apache.catalina.startup.Tomcat;
 public final class Main {
 
     private static final int TOMCAT_PORT = 8080;
+    private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
     private Main() {
 
@@ -21,7 +25,9 @@ public final class Main {
      * Main method to start the Tomcat instance.
      */
     static void main() {
-        System.out.println("Hostname: " + EnvironmentVariableUtils.getOrDefault("HOSTNAME", "localhost"));
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+        LOGGER.debug("Hostname: {}", EnvironmentVariableUtils.getOrDefault("HOSTNAME", "localhost"));
 
         final Tomcat tomcat = new Tomcat();
         tomcat.setPort(TOMCAT_PORT);
@@ -33,10 +39,10 @@ public final class Main {
 
         try {
             tomcat.start();
-            System.out.println("Server started on http://localhost:" + TOMCAT_PORT);  // TODO: Logger
+            LOGGER.info("Server started on http://localhost:{}", TOMCAT_PORT);
             tomcat.getServer().await();
         } catch (final LifecycleException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Failed to start tomcat server", e);
         }
     }
 }

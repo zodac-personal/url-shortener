@@ -16,6 +16,7 @@ class UrlValidatorTest {
         "https://www.google.com,true",
         "file://www.google.com,false",
         "https://,false",
+        ",false"
     })
     void testIsValid(final String input, final boolean expected) {
         final boolean actual = UrlValidator.isValid(input);

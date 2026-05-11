@@ -21,6 +21,8 @@
         <maven.test.skip>${skip-tests}</maven.test.skip>
 
         <!-- Dependency versions -->
+        <log4j.version>2.24.3</log4j.version>
+        <slf4j.version>2.0.16</slf4j.version>
         <tomcat.version>11.0.22</tomcat.version>
         <jedis.version>7.5.0</jedis.version>
 
@@ -74,6 +76,12 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Pin to 2.x so jedis's transitive slf4j-api:1.7.x does not win dependency mediation -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -82,6 +90,27 @@
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
             <version>${jedis.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>${log4j.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <!-- Embedded Tomcat -->
         <dependency>
@@ -478,7 +507,7 @@
     </build>
 
     <profiles>
-        <!-- Profile to run both unit tests and lints (no integration tests) -->
+        <!-- Profile to run unit/integration tests, lints, and builds the JAR -->
         <profile>
             <id>activate_all</id>
             <activation>
@@ -491,6 +520,21 @@
                 <skip-linters>false</skip-linters>
                 <skip-tests>false</skip-tests>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                                <include>**/*IntegrationTests.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <!-- Profile used to execute lints -->

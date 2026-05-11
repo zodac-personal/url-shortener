@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="60">
+    <Properties>
+        <Property name="rootLevel">${env:LOG_LEVEL:-INFO}</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT" follow="true">
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%highlight{%-5level}{FATAL=red, ERROR=bold red, WARN=bold yellow, INFO=bold blue, DEBUG=bold green, TRACE=bold magenta}] %msg%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <!-- Redirect java.util.logging to Log4j2 -->
+        <Logger name="java.util.logging" level="info" additivity="false">
+            <AppenderRef ref="CONSOLE"/>
+        </Logger>
+
+        <!-- Suppressing embedded tomcat logs unless WARN+ -->
+        <Logger name="org.apache.catalina" level="WARN" additivity="false">
+            <AppenderRef ref="CONSOLE"/>
+        </Logger>
+        <Logger name="org.apache.coyote" level="WARN" additivity="false">
+            <AppenderRef ref="CONSOLE"/>
+        </Logger>
+        <Logger name="org.apache.tomcat" level="WARN" additivity="false">
+            <AppenderRef ref="CONSOLE"/>
+        </Logger>
+
+        <Root level="${rootLevel}">
+            <AppenderRef ref="CONSOLE"/>
+        </Root>
+    </Loggers>
+</Configuration>

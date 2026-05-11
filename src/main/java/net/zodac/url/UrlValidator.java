@@ -23,6 +23,10 @@ final class UrlValidator {
      * @return {@code true} if the URL is valid
      */
     static boolean isValid(final String inputUrl) {
+        if (inputUrl == null) {
+            return false;
+        }
+
         try {
             final URI uri = URI.create(inputUrl);
             final String scheme = uri.getScheme().toUpperCase(Locale.getDefault());

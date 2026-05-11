@@ -174,9 +174,6 @@ backend-10  | Found value in cache
 
 - Proper API docs (**OpenAPI**/**Swagger** or **RAML**)
 - Added **nginx** (or a similar reverse proxy) to handle SSL termination
-- Actual integration tests for the full E2E flow (if additional components were added)
-- Added linting (**PMD**, **SpotBugs**, **CheckStyle**, etc.)
-- Used a proper logging framework
 - Added some instrumentation, maybe?
     - Future planning to expose some metrics for something like **Prometheus**
 - Potentially introduced an in-memory cache (like [Caffeine](https://github.com/ben-manes/caffeine)) in addition to **valkey**

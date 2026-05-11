@@ -23,6 +23,7 @@ final class ShortCodeGenerator {
      *
      * @param inputUrl the URL to shorten
      * @return the generated short code for the URL
+     * @throws IllegalStateException thrown if an invalid algorithm is used for {@link MessageDigest}
      */
     static String generate(final String inputUrl) {
         try {
@@ -35,7 +36,7 @@ final class ShortCodeGenerator {
                 .encodeToString(digestHash)
                 .substring(0, SHORT_CODE_LENGTH);
         } catch (final NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 }
