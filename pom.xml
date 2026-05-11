@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
@@ -34,6 +34,7 @@
         <asm-version>9.9.1</asm-version>
         <checkstyle.version>13.4.2</checkstyle.version>
         <error_prone_core.version>2.49.0</error_prone_core.version>
+        <licenses.version>1</licenses.version>
         <nullaway.version>0.13.4</nullaway.version>
         <pmd.version>7.24.0</pmd.version>
         <spotbugs.version>4.9.8</spotbugs.version>
@@ -51,6 +52,7 @@
         <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
 
         <!-- Linter Plugin Versions -->
+        <license-maven-plugin.version>5.0.0</license-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
         <maven-pmd-plugin.version>3.28.0</maven-pmd-plugin.version>
@@ -106,17 +108,17 @@
             <artifactId>log4j-core</artifactId>
             <version>${log4j.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j2-impl</artifactId>
-            <version>${log4j.version}</version>
-            <scope>runtime</scope>
-        </dependency>
         <!-- Embedded Tomcat -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <version>${tomcat.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>${log4j.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- Testing -->
@@ -145,6 +147,48 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>${license-maven-plugin.version}</version>
+                <configuration>
+                    <licenseSets>
+                        <licenseSet>
+                            <header>${license-file}</header>
+                            <headerDefinitions>
+                                <headerDefinition>${license-header-definition-file}</headerDefinition>
+                            </headerDefinitions>
+                            <includes>
+                                <include>src/main/java/**</include>
+                                <include>src/test/java/**</include>
+                            </includes>
+                        </licenseSet>
+                    </licenseSets>
+                    <mapping>
+                        <java>JavaPackage</java>
+                    </mapping>
+                    <properties>
+                        <initial-year>2026</initial-year>
+                        <website>zodac.net</website>
+                    </properties>
+                    <skip>${skip-linters}</skip>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>licenses</artifactId>
+                        <version>${licenses.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
