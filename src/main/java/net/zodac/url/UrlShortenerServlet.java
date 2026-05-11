@@ -37,7 +37,7 @@ public class UrlShortenerServlet extends HttpServlet {
 
             // Healthcheck endpoint
             if (STATUS_PATH.equals(pathInfo)) {
-                LOGGER.trace("Received GET request at '{}' with parameters: {}", request.getRequestURI(), request.getQueryString());
+                LOGGER.trace("Received GET request at '{}'", request.getRequestURI());
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().write("<html><body><p>OK</p></body></html>");
                 return;

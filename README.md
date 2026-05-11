@@ -56,6 +56,7 @@ docker ps -a | grep api-docs
 ## API Documentation
 
 Once served, the API documentation can be found at:
+
 ```shell
 http://localhost:8080/api.yaml
 ```
@@ -125,23 +126,26 @@ Invalid short code: [invalid]
 
 ### Caching
 
-You can confirm the cache is working by stopping and restarting the application:
+You can confirm the cache is working by performing the following steps:
 
-```shell
-docker compose down && docker compose up --build
-```
+#### Short Code Generation Cached
 
-Then run a **GET** request to resolve a known short-code:
+1. Start the application: `docker compose up --build -d --scale backend=10`
+2. Shorten a URL: `curl -X POST -d 'url=https://google.com' http://localhost:8080`
+3. Confirm in the logs that a new code is generated: `Nothing in cache, generating new shortened URL`
+4. Shorten the same URL again: `curl -X POST -d 'url=https://google.com' http://localhost:8080`
+5. Confirm in the logs that there is a cache hit: `Found value for URL 'https://google.com' in cache`
+6. (Optional if `--scale backend=10` was used) Keep re-running into another backend is hit, and you should see a cache hit there too
 
-```shell
-curl -X GET http://localhost:8080/FGeTGg6Mcb -I
-```
+#### Persistent Storage Across Restarts
 
-You should get a response despite no **POST** request shortening the URL, and can see the following log entry:
+Run the following steps to confirm that short code mappings are stored between restarts in the cache.
 
-```shell
-Found value in cache
-```
+1. Start the application: `docker compose up --build -d --scale backend=10`
+2. Shorten a URL: `curl -X POST -d 'url=https://github.com' http://localhost:8080`
+3. Restart the application: `docker compose down && docker compose up --build --scale backend=10`
+4. Resolve a known short-code: `curl -X GET http://localhost:8080/mW4fcUsI6X -I`
+5. There should be an **HTTP 302** response despite no **POST** request for this session
 
 ### Load Balancing
 
@@ -160,10 +164,10 @@ curl -X POST -d 'url=https://youtube.com'  http://localhost:8080
 You should be able to see logs across the `backend` instances showing the load-balancer is spreading the requests across the replicas:
 
 ```shell
-backend-8   | Found value in cache
-backend-6   | Found value in cache
-backend-2   | Found value in cache
-backend-10  | Found value in cache
+backend-8   | Found value for URL 'https://youtube.com' in cache
+backend-6   | Found value for URL 'https://youtube.com' in cache
+backend-2   | Found value for URL 'https://youtube.com' in cache
+backend-10  | Found value for URL 'https://youtube.com' in cache
 ```
 
 ## Assumptions
