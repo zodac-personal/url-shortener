@@ -646,9 +646,11 @@
                         <version>${maven-surefire-plugin.version}</version>
                         <configuration>
                             <includes>
-                                <include>**/*Test.java</include>
                                 <include>**/*IntegrationTests.java</include>
                             </includes>
+                            <excludes>
+                                <exclude>**/*Test.java</exclude>
+                            </excludes>
                         </configuration>
                     </plugin>
                 </plugins>

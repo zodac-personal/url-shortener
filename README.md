@@ -65,11 +65,20 @@ This will redirect to the Swagger UI for testing and reading the APIs.
 
 ## Automated Testing
 
-First start the application then run `mvn clean install -Pintegration-tests` to run all unit tests and the endpoint tests.
+First start the application then run `mvn clean install -Pintegration-tests` to run the endpoint integration tests:
 
 ```shell
 docker compose up --build -d
 mvn clean install -Pintegration-tests
+docker compose down
+```
+
+To run unit tests, integration tests, and project lints:
+
+```shell
+docker compose up --build -d
+mvn clean install -Dall
+docker compose down
 ```
 
 ## Manual Testing
@@ -149,19 +158,11 @@ Run the following steps to confirm that short code mappings are stored between r
 
 ### Load Balancing
 
-You can confirm the load-balancer is working by stopping and restarting the application with multiple replicas
+You can confirm the load-balancer is working by stopping and restarting the application with multiple replicas:
 
-```shell
-docker compose down && docker compose up --build --scale backend=10
-```
-
-Then run some **POST** requests to shorten a URL (can be the same request):
-
-```shell
-curl -X POST -d 'url=https://youtube.com'  http://localhost:8080
-```
-
-You should be able to see logs across the `backend` instances showing the load-balancer is spreading the requests across the replicas:
+1. Start the application with multiple replicas: `docker compose up --build -d --scale backend=10`
+2. Execute several **POST** requests (can be the same or unique URLs): `curl -X POST -d 'url=https://youtube.com'  http://localhost:8080`
+3. You should be able to see logs across the `backend` instances showing the load-balancer is spreading the requests across the replicas:
 
 ```shell
 backend-8   | Found value for URL 'https://youtube.com' in cache
@@ -198,7 +199,7 @@ backend-10  | Found value for URL 'https://youtube.com' in cache
 
 ----
 
-# URL Shortener — Coding Challenge
+## URL Shortener — Coding Challenge
 
 *Please spend around 1-2 hours on the coding part of this challenge. Scale down the requirements to fit the time allowed if needed. It's also A-okay
 to update the README outside of that time.*
@@ -223,9 +224,9 @@ mvnw.cmd package
 java -jar target/url-shortener.jar
 ```
 
-The server starts on **http://localhost:8080**.
+The server starts on **[localhost](http://localhost:8080)**.
 
----
+----
 
 ## The Task
 
