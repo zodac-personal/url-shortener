@@ -155,6 +155,7 @@ services:
     user: "1000:1000"
     volumes:
       - ./openapi.yaml:/spec/openapi.yaml
+      - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
 
 volumes:
   cache_data: { }
