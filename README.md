@@ -8,14 +8,14 @@ The application can be launched with `docker`:
 docker compose up --build -d --scale backend=10
 ```
 
-This will launch the external cache, the load-balancer, and 10 replicas of the Java backend. You should see the following line in the console per
-replica to confirm the application started successfully:
+This will launch the external cache, the load-balancer, the Swagger UI for API docs, and 10 replicas of the Java backend. You should see the following
+line in the console per replica to confirm the application started successfully:
 
 ```shell
 Server started on http://localhost:8080
 ```
 
-Similarly, you can use `docker ps` to verify the status of the container:
+Similarly, you can use `docker ps` to verify the status of the containers:
 
 <details>
     <summary>Docker container health</summary>
@@ -44,9 +44,23 @@ docker ps -a | grep cache
 docker ps -a | grep load-balancer
 # Output
 74b30f76e741   haproxy:3.3.9-alpine         "docker-entrypoint.s…"   About a minute ago   Up About a minute (healthy)   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp  load-balancer
+
+# API Docs
+docker ps -a | grep api-docs
+# Output
+1bf4f1ae9eda   swaggerapi/swagger-ui:v5.32.5        "/docker-entrypoint.…"   2 minutes ago    Up 2 minutes (healthy)       80/tcp, 8080/tcp   api-docs
 ```
 
 </details>
+
+## API Documentation
+
+Once served, the API documentation can be found at:
+```shell
+http://localhost:8080/api.yaml
+```
+
+This will redirect to the Swagger UI for testing and reading the APIs.
 
 ## Automated Testing
 
@@ -62,7 +76,7 @@ mvn clean install -Pintegration-tests
 ### Shorten URL
 
 ```shell
-curl -X POST -d 'url=https://www.youtube.com' http://localhost:8080
+curl -X POST -d 'url=https://youtube.com' http://localhost:8080
 
 # Output
 <html>
@@ -70,11 +84,11 @@ curl -X POST -d 'url=https://www.youtube.com' http://localhost:8080
         <h1>Hello from URL Shortener</h1>
         <div>
             <b>Original:</b>
-            https://www.youtube.com
+            https://youtube.com
         </div>
         <div>
             <b>Shortened:</b>
-            http://localhost:8080/2TMawShw8p
+            http://localhost:8080/FGeTGg6Mcb
         </div>
     </body>
 </html>
@@ -83,17 +97,17 @@ curl -X POST -d 'url=https://www.youtube.com' http://localhost:8080
 ### Resolve URL
 
 ```shell
-curl -X GET http://localhost:8080/2TMawShw8p -I
+curl -X GET http://localhost:8080/FGeTGg6Mcb -I
 
 # Output
 HTTP/1.1 302 
-Location: https://www.youtube.com
+Location: https://youtube.com
 Content-Type: text/html;charset=UTF-8
 Content-Length: 0
 Date: Sat, 09 May 2026 02:20:24 GMT
 ```
 
-You can also load `http://localhost:8080/2TMawShw8p` in a browser, which should then redirect to [YouTube](https://youtube.com).
+You can also load `http://localhost:8080/FGeTGg6Mcb` in a browser, which should then redirect to [YouTube](https://youtube.com).
 
 ### Error Cases
 
@@ -120,7 +134,7 @@ docker compose down && docker compose up --build
 Then run a **GET** request to resolve a known short-code:
 
 ```shell
-curl -X GET http://localhost:8080/2TMawShw8p -I
+curl -X GET http://localhost:8080/FGeTGg6Mcb -I
 ```
 
 You should get a response despite no **POST** request shortening the URL, and can see the following log entry:
@@ -140,7 +154,7 @@ docker compose down && docker compose up --build --scale backend=10
 Then run some **POST** requests to shorten a URL (can be the same request):
 
 ```shell
-curl -X POST -d 'url=https://www.youtube.com'  http://localhost:8080
+curl -X POST -d 'url=https://youtube.com'  http://localhost:8080
 ```
 
 You should be able to see logs across the `backend` instances showing the load-balancer is spreading the requests across the replicas:
@@ -172,7 +186,6 @@ backend-10  | Found value in cache
 
 ## Ran Out Of Time
 
-- Proper API docs (**OpenAPI**/**Swagger** or **RAML**)
 - Added **nginx** (or a similar reverse proxy) to handle SSL termination
 - Added some instrumentation, maybe?
     - Future planning to expose some metrics for something like **Prometheus**

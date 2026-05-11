@@ -1,0 +1,90 @@
+openapi: 3.0.3
+info:
+  title: URL Shortener API
+  description: Simple URL shortener service built with Jakarta HttpServlet
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /status:
+    get:
+      summary: Health check endpoint
+      description: Returns OK if the service is running
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            text/html:
+              schema:
+                type: string
+                format: html
+                example: |
+                  <html>
+                    <body>
+                      <p>OK</p>
+                    </body>
+                  </html>
+
+  /{shortCode}:
+    get:
+      summary: Resolve shortened URL
+      description: Redirects to the original URL for the given short code
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          description: The generated short code
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to original URL
+        "404":
+          description: Short code not found
+        "500":
+          description: Internal server error
+
+  /:
+    post:
+      summary: Create shortened URL
+      description: Creates a short URL for a given input URL
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - url
+              properties:
+                url:
+                  type: string
+                  example: https://youtube.com
+      responses:
+        "201":
+          description: Short URL created
+          content:
+            text/html:
+              schema:
+                type: string
+                format: html
+                example: |
+                  <html>
+                      <body>
+                          <h1>Hello from URL Shortener</h1>
+                          <div>
+                              <b>Original:</b>
+                              https://youtube.com
+                          </div>
+                          <div>
+                              <b>Shortened:</b>
+                              http://localhost:8080/FGeTGg6Mcb
+                          </div>
+                      </body>
+                  </html>
+        "400":
+          description: Invalid URL
+        "500":
+          description: Internal server error
