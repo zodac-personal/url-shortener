@@ -34,7 +34,6 @@ final class ShortCodeGenerator {
             final MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
             final byte[] digestHash = digest.digest(inputUrl.getBytes(StandardCharsets.UTF_8));
 
-            // TODO: Maybe check this and look for something to do alphanumeric only? No big deal
             return Base64.getUrlEncoder()
                 .withoutPadding()
                 .encodeToString(digestHash)

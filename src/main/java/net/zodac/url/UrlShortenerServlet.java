@@ -28,7 +28,6 @@ public class UrlShortenerServlet extends HttpServlet {
 
     private static final String STATUS_PATH = "/status";
 
-    // TODO: Add some API docs
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
         try {

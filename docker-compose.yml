@@ -8,7 +8,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/backend/Dockerfile
     cap_drop:
       - ALL
     depends_on:
@@ -116,7 +116,7 @@ services:
       - /tmp:size=64m,noexec,nosuid,nodev
     user: "99:99"  # haproxy user
     volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./docker/load-balancer/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
 
   api-docs:
     image: swaggerapi/swagger-ui:v5.32.5
@@ -154,8 +154,8 @@ services:
       - /tmp:size=64m,noexec,nosuid,nodev
     user: "1000:1000"
     volumes:
-      - ./openapi.yaml:/spec/openapi.yaml
-      - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
+      - ./docker/api-docs/openapi.yaml:/spec/openapi.yaml
+      - ./docker/api-docs/nginx.conf:/etc/nginx/templates/default.conf.template:ro
 
 volumes:
   cache_data: { }
